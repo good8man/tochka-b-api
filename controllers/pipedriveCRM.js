@@ -18,9 +18,9 @@ const {
       const referer = req.get("Referer");
       if (referer && referer.includes("/ex1")) source = '(ex)';
       if (referer && referer.includes("/lm1")) source = 'ЛІД-магніт';
-      console.log(referer);
+      // console.log(referer);
       console.log("source:", source);
-      // console.log(req.body);
+      console.log(req.body);
       if (!Phone) return;
       let personsId = ''; 
       const foundedPerson = await searchPerson(Phone);
