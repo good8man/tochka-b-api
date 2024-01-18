@@ -16,8 +16,11 @@ const {
       } = req;
       let source = '(main)';
       const referer = req.get("Referer");
+      if (referer && referer.includes("/ex1")) source = '(ex)';
+      if (referer && referer.includes("/lm1")) source = 'ЛІД-магніт';
       console.log(referer);
-      console.log(req.body);
+      console.log("source:", source);
+      // console.log(req.body);
       if (!Phone) return;
       let personsId = ''; 
       const foundedPerson = await searchPerson(Phone);
@@ -71,7 +74,7 @@ const {
     if (foundedClosedDeals.length) {
       console.log("found closed deals", foundedClosedDeals.length);
       console.log("id",foundedClosedDeals[0].item.id);
-      const body = {title: `Test Клієнт залишив заявку на консультацію ${source}`, status: "open", pipeline_id: 1, person_id: personsId};
+      const body = {title: `Test Клієнт залишив заявку на${source !== 'ЛІД-магніт' ? " консультацію" : ''} ${source}`, status: "open", pipeline_id: 1, person_id: personsId};
       const newDeal = await duplicateDeal(foundedClosedDeals[0].item.id);
       const editedDeal = await editDeal(newDeal.id, body); 
       const notesBody = {deal_id: newDeal.id, content: `Повторна заявка від клієнта ${Name ? Name : ''} ${Phone ? Phone : ''}, джерело ${source}`};
@@ -81,7 +84,7 @@ const {
   } else {  
     console.log("Deals not found");
     const body = {person_id: personsId};
-    body.title = `Test Клієнт залишив заявку на консультацію ${source}`;
+    body.title = `Test Клієнт залишив заявку на${source !== 'ЛІД-магніт' ? " консультацію" : ''} ${source}`;
     body.pipeline_id = 1;
     if (utm_source) body["9866a4195e069161f192f563c269b463b4ea0688"] = utm_source;
     if (utm_medium) body["ce4db30445a2acfb1593b51034ff9f303e679926"] = utm_medium;
