@@ -4,7 +4,7 @@ const { API_TOKEN, BASE_URL } = process.env;
 axios.defaults.baseURL = BASE_URL;
 
 const searchPerson = async (term) => {
-  const params = { term, fields: "phone", limit: 1, api_token: API_TOKEN };
+  const params = { term, limit: 1, api_token: API_TOKEN };
   const { data } = await axios.get("/persons/search", { params });
   return data ? data.data.items : [];
 };
@@ -44,9 +44,21 @@ const editDeal = async (id, deal) => {
   return data ? data.data : {};
 };
 
+const duplicateDeal = async id => {
+  const params = { api_token: API_TOKEN };
+  const { data } = await axios.post(`/deals/${id}/duplicate`, null, { params });
+  return data ? data.data : {};
+};
+
 const addNote = async note => {
   const params = { api_token: API_TOKEN };
   const { data } = await axios.post("/notes", note, { params });
+  return data ? data.data : {};
+};
+
+const addActivities = async activities => {
+  const params = { api_token: API_TOKEN };
+  const { data } = await axios.post("/activities", activities, { params });
   return data ? data.data : {};
 };
 
@@ -57,5 +69,7 @@ module.exports = {
   addDeal,
   editDeal,
   searchDeal,
+  duplicateDeal,
+  addActivities,
   getDealDetails,
 };
