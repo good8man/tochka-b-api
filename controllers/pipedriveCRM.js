@@ -15,7 +15,7 @@ const {
         body: { Name, Phone, Email, utm_source, utm_medium, utm_campaign, utm_term, utm_content},
       } = req;
       let source = '(main)';
-      console.log(req.body);
+      console.log(req);
       if (!Phone) return;
       let personsId = ''; 
       const foundedPerson = await searchPerson(Phone);
