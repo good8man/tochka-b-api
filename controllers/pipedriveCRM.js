@@ -44,7 +44,7 @@ const {
       const personPhone = Phone ? Phone : phone2 ? phone2 : "";
       const personEmail = Email ? Email : email2 ? email2 : "";
       const title = `Test Клієнт залишив заявку на${source !== 'ЛІД-магніт' ? " консультацію" : ''} ${source}`;
-      const data = role ? ` Результат опитування: Роль? ${role}, Кількість продавців? ${quantity}, Обʼєм продажів? ${volume}, Функція керівника? ${func}, Які проблеми? ${probl}` : '';
+      const data = role ? ` Результат опитування: Роль? ${role}, Кількість продавців? ${quantity}${volume ? `, Обʼєм продажів? ${volume}, Функція керівника? ${func}, Які проблеми? ${probl}` : ""}` : '';
       const content = `Клієнт ${personName} ${personPhone} ${personEmail} залишив повторну заявку на${source !== 'ЛІД-магніт' ? " консультацію, джерело " : ''} ${source}${data}`;
       const content1 = `Заявка від клієнта ${personName} ${personPhone} ${personEmail} на${source !== 'ЛІД-магніт' ? " консультацію, джерело " : ''} ${source}${data}`;
       // console.log(referer);
