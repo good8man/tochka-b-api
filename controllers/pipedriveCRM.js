@@ -21,8 +21,10 @@ const {
           utm_campaign, 
           utm_term, 
           utm_content,
-          ['Роль']: role,
-          ['Кол-во_продавцов']: quantity,
+          ['Яка_ваша_роль_в_бізнесі']: role2,
+          ['Скільки_у_відділі_менеджерів_з_продажу']: quantity2,
+          ['Роль']: role3,
+          ['Кол-во_продавцов']: quantity3,
           ['Объем_продаж']: volume,
           ['Функция_руководителя']: func,
           ['Какие_проблемы']: probl,
@@ -36,6 +38,8 @@ const {
       const referer = req.get("Referer");
       if (referer && referer.includes("/ex1")) source = '(ex)';
       if (referer && referer.includes("/lm1")) source = 'ЛІД-магніт';
+      const role = role2 ? role2 : role3 ? role3 : "";
+      const quantity = quantity2 ? quantity2 : quantity3 ? quantity3 : "";
       const personName = Name ? Name : name2 ? name2 : "Undefined name";
       const personPhone = Phone ? Phone : phone2 ? phone2 : "";
       const personEmail = Email ? Email : email2 ? email2 : "";
