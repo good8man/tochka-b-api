@@ -41,10 +41,11 @@ const {
       const personEmail = Email ? Email : email2 ? email2 : "";
       const title = `Test Клієнт залишив заявку на${source !== 'ЛІД-магніт' ? " консультацію" : ''} ${source}`;
       const data = role ? ` Результат опитування: Роль? ${role}, Кількість продавців? ${quantity}, Обʼєм продажів? ${volume}, Функція керівника? ${func}, Які проблеми? ${probl}` : '';
-      const content = `Клієнт ${personName} ${personPhone} ${personEmail} залишив заявку на${source !== 'ЛІД-магніт' ? " консультацію" : ''} ${source}${data}`;
+      const content = `Клієнт ${personName} ${personPhone} ${personEmail} залишив повторну заявку на${source !== 'ЛІД-магніт' ? " консультацію, джерело " : ''} ${source}${data}`;
+      const content1 = `Заявка від клієнта ${personName} ${personPhone} ${personEmail} на${source !== 'ЛІД-магніт' ? " консультацію, джерело " : ''} ${source}${data}`;
       // console.log(referer);
       console.log("source:", source);
-      console.log(data);
+      // console.log(req.body);
       if (!personPhone) return;
       const foundedPerson = await searchPerson(personPhone);
       if (foundedPerson.length) {
@@ -90,6 +91,8 @@ const {
         if (foundedPipelines3) {
           console.log("found active deals Pipeline 3");
           const notesBody = {deal_id: foundedPipelines3.id, content};
+          const activitiesBody = {deal_id: foundedPipelines3.id, note: content};
+          const newActivities = await addActivities(activitiesBody);
           const newNote = await addNote(notesBody); 
         }
 
@@ -98,6 +101,12 @@ const {
       console.log("found closed deals", foundedClosedDeals.length);
       console.log("id",foundedClosedDeals[0].item.id);
       const body = {title, status: "open", pipeline_id: 1, person_id: personsId};
+      if (utm_source) body["9866a4195e069161f192f563c269b463b4ea0688"] = utm_source;
+      if (utm_medium) body["ce4db30445a2acfb1593b51034ff9f303e679926"] = utm_medium;
+      if (utm_campaign) body["50966a75b48a959f8fdff6d001e46b78d2778bd2"] = utm_campaign;
+      if (utm_term) body["d0503ee8929b0158e144aa74e818c1683152609a"] = utm_term;
+      if (utm_content) body["0b9b6f42c6ea10f8cd5e6d54463dbfecf6e7c2bf"] = utm_content;
+
       const newDeal = await duplicateDeal(foundedClosedDeals[0].item.id);
       const editedDeal = await editDeal(newDeal.id, body); 
       const notesBody = {deal_id: newDeal.id, content};
@@ -107,13 +116,17 @@ const {
   } else {  
     console.log("Deals not found");
     const body = {person_id: personsId, title, pipeline_id: 1};
+    // if (source === '(main)') body.pipeline_id = 1;
+    // if (source === '(ex)') body.pipeline_id = 2;
+    // if (source === 'ЛІД-магніт') body.pipeline_id = 3;
+
     if (utm_source) body["9866a4195e069161f192f563c269b463b4ea0688"] = utm_source;
     if (utm_medium) body["ce4db30445a2acfb1593b51034ff9f303e679926"] = utm_medium;
     if (utm_campaign) body["50966a75b48a959f8fdff6d001e46b78d2778bd2"] = utm_campaign;
     if (utm_term) body["d0503ee8929b0158e144aa74e818c1683152609a"] = utm_term;
     if (utm_content) body["0b9b6f42c6ea10f8cd5e6d54463dbfecf6e7c2bf"] = utm_content;
     const newDeal = await addDeal(body);
-    const notesBody = {deal_id: newDeal.id, content};
+    const notesBody = {deal_id: newDeal.id, content: content1};
     const newNote = await addNote(notesBody);
     }
   }
