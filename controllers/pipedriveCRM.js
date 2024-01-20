@@ -48,43 +48,43 @@ const {
       const content = `Клієнт ${personName} ${personPhone} ${personEmail} залишив повторну заявку на${source !== 'ЛІД-магніт' ? " консультацію, джерело " : ''} ${source}${data}`;
       const content1 = `Заявка від клієнта ${personName} ${personPhone} ${personEmail} на${source !== 'ЛІД-магніт' ? " консультацію, джерело " : ''} ${source}${data}`;
       // console.log(referer);
-      console.log("source:", source);
+      // console.log("source:", source);
       // console.log(req.body);
       if (!personPhone) return;
       const foundedPerson = await searchPerson(personPhone);
       if (foundedPerson.length) {
         personsId = foundedPerson[0].item.id
-        console.log("found Person", personsId);    
+        // console.log("found Person", personsId);    
       } else {
-        console.log("Person not found");
+        // console.log("Person not found");
         const body = {name: personName}
         if (personPhone) body.phone = personPhone;
         if (personEmail) body.email = personEmail;
         const newPerson = await addPerson(body);
         if (newPerson) personsId = newPerson.id;
-        console.log("new person id", personsId);
+        // console.log("new person id", personsId);
       }
 
       const foundedDeals = await searchDeal(personPhone);
       const foundedActiveDeals = foundedDeals.filter(deal => deal.item.status === 'open');
       const foundedClosedDeals = foundedDeals.filter(deal => deal.item.status !== 'open');    
     if (foundedDeals.length) {
-      console.log("found Deals", foundedDeals.length);
+      // console.log("found Deals", foundedDeals.length);
     if (foundedActiveDeals.length) {
-        console.log("found active deals", foundedActiveDeals.length);
+        // console.log("found active deals", foundedActiveDeals.length);
         const deals = await getDealDetails(foundedActiveDeals.map(deal => deal.item.id))
         const foundedPipelines1 = deals.find(deal => deal.pipeline_id === 1);
         const foundedPipelines2 = deals.find(deal => deal.pipeline_id === 2);
         const foundedPipelines3 = deals.find(deal => deal.pipeline_id === 3);
         if (foundedPipelines1) {
-          console.log("found active deals Pipeline 1", foundedPipelines1.id );
+          // console.log("found active deals Pipeline 1", foundedPipelines1.id );
           const notesBody = {deal_id: foundedPipelines1.id, content};
           const activitiesBody = {deal_id: foundedPipelines1.id, note: content};
           const newNote = await addNote(notesBody);
           const newActivities = await addActivities(activitiesBody);
         }
         if (foundedPipelines2) {
-          console.log("found active deals Pipeline 2");
+          // console.log("found active deals Pipeline 2");
           const body = {pipeline_id: 1};
           const notesBody = {deal_id: foundedPipelines2.id, content};
           const activitiesBody = {deal_id: foundedPipelines2.id, note: content};
@@ -93,7 +93,7 @@ const {
           const newNote = await addNote(notesBody);
         }
         if (foundedPipelines3) {
-          console.log("found active deals Pipeline 3");
+          // console.log("found active deals Pipeline 3");
           const notesBody = {deal_id: foundedPipelines3.id, content};
           const activitiesBody = {deal_id: foundedPipelines3.id, note: content};
           const newActivities = await addActivities(activitiesBody);
@@ -102,8 +102,8 @@ const {
 
     } else {  
     if (foundedClosedDeals.length) {
-      console.log("found closed deals", foundedClosedDeals.length);
-      console.log("id",foundedClosedDeals[0].item.id);
+      // console.log("found closed deals", foundedClosedDeals.length);
+      // console.log("id",foundedClosedDeals[0].item.id);
       const body = {title, status: "open", pipeline_id: 1, person_id: personsId};
       if (utm_source) body["9866a4195e069161f192f563c269b463b4ea0688"] = utm_source;
       if (utm_medium) body["ce4db30445a2acfb1593b51034ff9f303e679926"] = utm_medium;
@@ -118,7 +118,7 @@ const {
     }
     }
   } else {  
-    console.log("Deals not found");
+    // console.log("Deals not found");
     const body = {person_id: personsId, title, pipeline_id: 1};
     // if (source === '(main)') body.pipeline_id = 1;
     // if (source === '(ex)') body.pipeline_id = 2;
