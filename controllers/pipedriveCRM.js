@@ -35,16 +35,19 @@ const {
           ['Почта']: email2,
         },
       } = req;
-      let personsId = ''; 
+      let personsId = '';
+      let label = '24';
       let source = '(main)';
       let foundedPerson = [];
       const referer = req.get("Referer");
       if (referer && referer.includes("/ex1")) {
+        label = '23';
         if (formid && formid === 'form610726258') source = 'Ex Ф1';
         if (formid && formid === 'form625077433') source = 'Ex pop-up';
         if (formid && formid !== 'form625077433' && formid !== 'form610726258') source = 'Ex Ф2';
       }
       if (referer && referer.includes("/lm1")) {
+        label = '22';
         if (formid && formid === 'form572806238') source = 'Lm Ф1';
         if (formid && formid !== 'form572806238') source = 'Lm Ф2';
       }
@@ -128,7 +131,7 @@ const {
     if (foundedClosedDeals.length) {
       // console.log("found closed deals", foundedClosedDeals.length);
       // console.log("id",foundedClosedDeals[0].item.id);
-      const body = {title, status: "open", pipeline_id: 1, person_id: personsId};
+      const body = {title, status: "open", pipeline_id: 1, person_id: personsId, label};
       if (utm_source) body["9866a4195e069161f192f563c269b463b4ea0688"] = utm_source;
       if (utm_medium) body["ce4db30445a2acfb1593b51034ff9f303e679926"] = utm_medium;
       if (utm_campaign) body["50966a75b48a959f8fdff6d001e46b78d2778bd2"] = utm_campaign;
@@ -143,7 +146,7 @@ const {
     }
   } else {  
     // console.log("Deals not found");
-    const body = {person_id: personsId, title, pipeline_id: 1};
+    const body = {person_id: personsId, title, pipeline_id: 1, label};
     if (utm_source) body["9866a4195e069161f192f563c269b463b4ea0688"] = utm_source;
     if (utm_medium) body["ce4db30445a2acfb1593b51034ff9f303e679926"] = utm_medium;
     if (utm_campaign) body["50966a75b48a959f8fdff6d001e46b78d2778bd2"] = utm_campaign;
