@@ -1,5 +1,6 @@
 const {
     searchPerson,
+    editPerson,
     addPerson,
     addNote,
     addDeal,
@@ -15,7 +16,8 @@ const {
         body: {
           Name, 
           Phone, 
-          Email, 
+          Email,
+          formid, 
           utm_source, 
           utm_medium, 
           utm_campaign, 
@@ -35,36 +37,58 @@ const {
       } = req;
       let personsId = ''; 
       let source = '(main)';
+      let foundedPerson = [];
       const referer = req.get("Referer");
-      if (referer && referer.includes("/ex1")) source = '(ex)';
-      if (referer && referer.includes("/lm1")) source = 'ЛІД-магніт';
+      if (referer && referer.includes("/ex1")) {
+        if (formid && formid === 'form610726258') source = 'Ex Ф1';
+        if (formid && formid === 'form625077433') source = 'Ex pop-up';
+        if (formid && formid !== 'form625077433' && formid !== 'form610726258') source = 'Ex Ф2';
+      }
+      if (referer && referer.includes("/lm1")) {
+        if (formid && formid === 'form572806238') source = 'Lm Ф1';
+        if (formid && formid !== 'form572806238') source = 'Lm Ф2';
+      }
+      if (referer && !referer.includes("/lm1") && !referer.includes("/ex1")) {
+        if (formid && formid === 'form567612805') source = 'Головна Ф1';
+        if (formid && formid === 'form567612798') source = 'Головна Ф2';
+        if (formid && formid === 'form567612808') source = 'Головна Ф3';
+      }
+      
       const role = role2 ? role2 : role3 ? role3 : "";
       const quantity = quantity2 ? quantity2 : quantity3 ? quantity3 : "";
       const personName = Name ? Name : name2 ? name2 : "Undefined name";
       const personPhone = Phone ? Phone : phone2 ? phone2 : "";
       const personEmail = Email ? Email : email2 ? email2 : "";
-      const title = `Клієнт залишив заявку на${source !== 'ЛІД-магніт' ? " консультацію" : ''} ${source}`;
+      const title = `Клієнт залишив заявку на${!source.includes('Lm') ? " консультацію" : ''} ${source}`;
       const data = role ? ` Результат опитування: Роль? ${role}, Кількість продавців? ${quantity}${volume ? `, Обʼєм продажів? ${volume}, Функція керівника? ${func}, Які проблеми? ${probl}` : ""}` : '';
-      const content = `Клієнт ${personName} ${personPhone} ${personEmail} залишив повторну заявку на${source !== 'ЛІД-магніт' ? " консультацію, джерело " : ''} ${source}${data}`;
-      const content1 = `Заявка від клієнта ${personName} ${personPhone} ${personEmail} на${source !== 'ЛІД-магніт' ? " консультацію, джерело " : ''} ${source}${data}`;
+      const content = `Клієнт ${personName} ${personPhone} ${personEmail} залишив повторну заявку на${!source.includes('Lm') ? " консультацію, джерело " : ''} ${source}${data}`;
+      const content1 = `Заявка від клієнта ${personName} ${personPhone} ${personEmail} на${!source.includes('Lm') ? " консультацію, джерело " : ''} ${source}${data}`;
       // console.log(referer);
       // console.log("source:", source);
       // console.log(req.body);
-      if (!personPhone) return;
-      const foundedPerson = await searchPerson(personPhone);
+      if (!personPhone && !personEmail) return;
+
+      if (personPhone) foundedPerson = await searchPerson(personPhone);
+      if (personEmail && !foundedPerson.length) foundedPerson = await searchPerson(personEmail);
       if (foundedPerson.length) {
-        personsId = foundedPerson[0].item.id
+        personsId = foundedPerson[0].item.id;
+        if (personEmail && !foundedPerson[0].item.emails.includes(personEmail)) {
+          const newEmails = foundedPerson[0].item.emails;
+          newEmails.push(personEmail);
+          const body = {email: newEmails};
+          const editedPerson = await editPerson(personsId, body);
+        }
+        // console.log(foundedPerson[0]);
         // console.log("found Person", personsId);    
       } else {
         // console.log("Person not found");
-        const body = {name: personName}
-        if (personPhone) body.phone = personPhone;
-        if (personEmail) body.email = personEmail;
+        const body = {name: personName};
+        if (personPhone) body.phone = [{ value: personPhone, primary: true, label: "mobile" }];
+        if (personEmail) body.email = [{ value: personEmail, primary: true, label: "main" }];
         const newPerson = await addPerson(body);
         if (newPerson) personsId = newPerson.id;
         // console.log("new person id", personsId);
       }
-
       const foundedDeals = await searchDeal(personPhone);
       const foundedActiveDeals = foundedDeals.filter(deal => deal.item.status === 'open');
       const foundedClosedDeals = foundedDeals.filter(deal => deal.item.status !== 'open');    
@@ -120,10 +144,6 @@ const {
   } else {  
     // console.log("Deals not found");
     const body = {person_id: personsId, title, pipeline_id: 1};
-    // if (source === '(main)') body.pipeline_id = 1;
-    // if (source === '(ex)') body.pipeline_id = 2;
-    // if (source === 'ЛІД-магніт') body.pipeline_id = 3;
-
     if (utm_source) body["9866a4195e069161f192f563c269b463b4ea0688"] = utm_source;
     if (utm_medium) body["ce4db30445a2acfb1593b51034ff9f303e679926"] = utm_medium;
     if (utm_campaign) body["50966a75b48a959f8fdff6d001e46b78d2778bd2"] = utm_campaign;

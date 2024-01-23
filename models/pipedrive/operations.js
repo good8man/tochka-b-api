@@ -3,8 +3,8 @@ const axios = require("axios");
 const { API_TOKEN, BASE_URL } = process.env;
 axios.defaults.baseURL = BASE_URL;
 
-const searchPerson = async (term) => {
-  const params = { term, limit: 1, api_token: API_TOKEN };
+const searchPerson = async term => {
+  const params = { term, limit: 1, exact_match: true, api_token: API_TOKEN };
   const { data } = await axios.get("/persons/search", { params });
   return data ? data.data.items : [];
 };
@@ -12,6 +12,12 @@ const searchPerson = async (term) => {
 const addPerson = async person => {
   const params = { api_token: API_TOKEN };
   const { data } = await axios.post("/persons", person, { params });
+  return data ? data.data : {};
+};
+
+const editPerson = async (id, person) => {
+  const params = { api_token: API_TOKEN };
+  const { data } = await axios.put(`/persons/${id}`, person, { params });
   return data ? data.data : {};
 };
 
@@ -64,6 +70,7 @@ const addActivities = async activities => {
 
 module.exports = {
   searchPerson,
+  editPerson,
   addPerson,
   addNote,
   addDeal,
