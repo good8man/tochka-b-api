@@ -69,11 +69,7 @@ const {
       const data = role ? `<table><caption><h3>Результат опитування&nbsp;</h3></caption><tr><td>Роль:</td><td>${role}</td></tr><tr><td>Кількість продавців:</td><td>${quantity}</td></tr>${volume ? `<tr><td>Обʼєм продажів:</td><td>${volume}</td></tr><tr><td>Функція керівника:</td><td>${func}</td></tr><tr><td>Які проблеми:</td><td><span>${probl.replace(/;/g, "</span></br><span>")}</span></td></tr>` : ""}</table>` : "";
       const content = `<h2>Клієнт залишив повторну заявку на <span style='background-color: #ffffff; color: ${labelColor};'>${source}</span>&nbsp;&nbsp;&nbsp;</h2><div><table><caption><h3>Контактна інформація&nbsp;</h3></caption><tr><td>Імʼя:</td><td>${personName}&nbsp;</td></tr><tr><td>Телефон:</td><td>${personPhone}&nbsp;</td></tr>${personEmail ? `<tr><td>Email:</td><td>${personEmail}&nbsp;&nbsp;</td></tr>` : "&nbsp;&nbsp;"}</table></br>${data}`;
       const content1 = `<h2>Клієнт залишив заявку на <span style='background-color: #ffffff; color: ${labelColor};'>${source}</span>&nbsp;&nbsp;&nbsp;</h2><div><table><caption><h3>Контактна інформація&nbsp;</h3></caption><tr><td>Імʼя:</td><td>${personName}&nbsp;</td></tr><tr><td>Телефон:</td><td>${personPhone}&nbsp;</td></tr>${personEmail ? `<tr><td>Email:</td><td>${personEmail}&nbsp;&nbsp;</td></tr>` : "&nbsp;&nbsp;"}</table></br>${data}`;
-      
-      // const data = role ? ` Результат опитування: Роль? ${role}, Кількість продавців? ${quantity}${volume ? `, Обʼєм продажів? ${volume}, Функція керівника? ${func}, Які проблеми? ${probl}` : ""}` : '';
-      // const content = `Клієнт ${personName} ${personPhone} ${personEmail} залишив повторну заявку на${!source.includes('Lm') ? " консультацію, джерело " : ''} ${source}${data}`;
-      // const content1 = `Заявка від клієнта ${personName} ${personPhone} ${personEmail} на${!source.includes('Lm') ? " консультацію, джерело " : ''} ${source}${data}`;
-      // <h2>Клієнт залишив заявку на на <span style='background-color: #ffffff; color: #4164d4;'>Lm Ф1</span>&nbsp;&nbsp;&nbsp;</h2><div><table><caption><h3>Контактна інформація&nbsp;</h3></caption><tr><td>Імʼя:</td><td>Тest Test&nbsp;</td></tr><tr><td>Телефон:</td><td>+380 (50) 000-00-10&nbsp;</td></tr><tr><td>Email:</td><td>test03@gmail.com&nbsp;&nbsp;</td></tr></table></br><table><caption><h3>Результат опитування&nbsp;</h3></caption><tr><td>Роль:</td><td>Інша роль</td></tr><tr><td>Кількість продавців:</td><td>4</td></tr><tr><td>Обʼєм продажів:</td><td>вище 50.000$</td></tr><tr><td>Функція керівника:</td><td>Ніхто</td></tr><tr><td>Які проблеми:</td><td><span>Низька мотивація у відділі продажів;</span></br><span>Відсутність системи та стабільності;</span></br><span>Відсутність інструментів: скрипитів, CRM, регламентів, періоду адаптації і т.д.</span></td></tr></table></div>
+     
       // console.log(referer);
       // console.log("source:", source);
       // console.log(req.body);
@@ -111,16 +107,21 @@ const {
         const foundedPipelines1 = deals.find(deal => deal.pipeline_id === 1);
         const foundedPipelines2 = deals.find(deal => deal.pipeline_id === 2);
         const foundedPipelines3 = deals.find(deal => deal.pipeline_id === 3);
+  
         if (foundedPipelines1) {
+          const newLabel = foundedPipelines1.label && !foundedPipelines1.label.includes(label) ? foundedPipelines1.label + `, ${label}` : label;
           // console.log("found active deals Pipeline 1", foundedPipelines1.id );
+          const body = {label: newLabel};
           const notesBody = {deal_id: foundedPipelines1.id, content};
           const activitiesBody = {deal_id: foundedPipelines1.id, note: content};
+          const editedDeal = await editDeal(foundedPipelines1.id, body);
           const newNote = await addNote(notesBody);
           const newActivities = await addActivities(activitiesBody);
         }
         if (foundedPipelines2) {
           // console.log("found active deals Pipeline 2");
-          const body = {pipeline_id: 1};
+          const newLabel = foundedPipelines2.label && !foundedPipelines2.label.includes(label) ? foundedPipelines2.label + `, ${label}` : label;
+          const body = {pipeline_id: 1, label: newLabel};
           const notesBody = {deal_id: foundedPipelines2.id, content};
           const activitiesBody = {deal_id: foundedPipelines2.id, note: content};
           const editedDeal = await editDeal(foundedPipelines2.id, body); 
@@ -129,8 +130,11 @@ const {
         }
         if (foundedPipelines3) {
           // console.log("found active deals Pipeline 3");
+          const newLabel = foundedPipelines3.label && !foundedPipelines3.label.includes(label) ? foundedPipelines3.label + `, ${label}` : label;
+          const body = {label: newLabel};
           const notesBody = {deal_id: foundedPipelines3.id, content};
           const activitiesBody = {deal_id: foundedPipelines3.id, note: content};
+          const editedDeal = await editDeal(foundedPipelines3.id, body); 
           const newActivities = await addActivities(activitiesBody);
           const newNote = await addNote(notesBody); 
         }
@@ -139,7 +143,8 @@ const {
     if (foundedClosedDeals.length) {
       // console.log("found closed deals", foundedClosedDeals.length);
       // console.log("id",foundedClosedDeals[0].item.id);
-      const body = {title, status: "open", pipeline_id: 1, person_id: personsId, label};
+      const newLabel = foundedClosedDeals[0].item.label && !foundedClosedDeals[0].item.label.includes(label) ? foundedClosedDeals[0].item.label + `, ${label}` : label;
+      const body = {title, status: "open", pipeline_id: 1, person_id: personsId, label: newLabel};
       if (utm_source) body["9866a4195e069161f192f563c269b463b4ea0688"] = utm_source;
       if (utm_medium) body["ce4db30445a2acfb1593b51034ff9f303e679926"] = utm_medium;
       if (utm_campaign) body["50966a75b48a959f8fdff6d001e46b78d2778bd2"] = utm_campaign;
