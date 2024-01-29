@@ -65,7 +65,8 @@ const {
       const personName = Name ? Name : name2 ? name2 : "Undefined name";
       const personPhone = Phone ? Phone : phone2 ? phone2 : "";
       const personEmail = Email ? Email : email2 ? email2 : "";
-      const title = `Клієнт залишив заявку на${!source.includes('Lm') ? " консультацію" : ''} ${source}`;
+      // const title = `Клієнт залишив заявку на${!source.includes('Lm') ? " консультацію" : ''} ${source}`;
+      const title = source;
       const data = role ? `<table><caption><h3>Результат опитування&nbsp;</h3></caption><tr><td>Роль:</td><td>${role}</td></tr><tr><td>Кількість продавців:</td><td>${quantity}</td></tr>${volume ? `<tr><td>Обʼєм продажів:</td><td>${volume}</td></tr><tr><td>Функція керівника:</td><td>${func}</td></tr><tr><td>Які проблеми:</td><td><span>${probl.replace(/;/g, "</span></br><span>")}</span></td></tr>` : ""}</table>` : "";
       const content = `<h2>Клієнт залишив повторну заявку на <span style='background-color: #ffffff; color: ${labelColor};'>${source}</span>&nbsp;&nbsp;&nbsp;</h2><div><table><caption><h3>Контактна інформація&nbsp;</h3></caption><tr><td>Імʼя:</td><td>${personName}&nbsp;</td></tr><tr><td>Телефон:</td><td>${personPhone}&nbsp;</td></tr>${personEmail ? `<tr><td>Email:</td><td>${personEmail}&nbsp;&nbsp;</td></tr>` : "&nbsp;&nbsp;"}</table></br>${data}`;
       const content1 = `<h2>Клієнт залишив заявку на <span style='background-color: #ffffff; color: ${labelColor};'>${source}</span>&nbsp;&nbsp;&nbsp;</h2><div><table><caption><h3>Контактна інформація&nbsp;</h3></caption><tr><td>Імʼя:</td><td>${personName}&nbsp;</td></tr><tr><td>Телефон:</td><td>${personPhone}&nbsp;</td></tr>${personEmail ? `<tr><td>Email:</td><td>${personEmail}&nbsp;&nbsp;</td></tr>` : "&nbsp;&nbsp;"}</table></br>${data}`;
