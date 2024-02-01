@@ -21,10 +21,21 @@ const editPerson = async (id, person) => {
   return data ? data.data : {};
 };
 
-const searchDeal = async (term) => {
-  const params = { term, custom_fields: "phone", api_token: API_TOKEN };
+const searchDeal = async search => {
+  const params = { api_token: API_TOKEN, ...search };
   const { data } = await axios.get("/deals/search", { params });
   return data ? data.data.items : [];
+};
+
+const searchAllDeals = async ids => {
+  const params = { api_token: API_TOKEN };
+  const response = [];
+  for (let i = 0; i < ids.length; i++) {
+    const id = ids[i];
+    const { data } = await axios.get(`/persons/${id}/deals`, { params });
+    if (data.data && data.data.length > 0) response.push( ...data.data );
+  }
+  return response;
 };
 
 const getDealDetails = async (ids) => {
@@ -62,9 +73,23 @@ const addNote = async note => {
   return data ? data.data : {};
 };
 
+
+const getNotes = async id => {
+  const params = { api_token: API_TOKEN, deal_id: id };
+  const { data } = await axios.get("/notes", { params });
+  return data ? data.data : {};
+};
+
 const addActivities = async activities => {
   const params = { api_token: API_TOKEN };
   const { data } = await axios.post("/activities", activities, { params });
+  return data ? data.data : {};
+};
+
+const getActivities = async id => {
+  const params = { api_token: API_TOKEN };
+  const { data } = await axios.get(`/deals/${id}/activities`, { params });
+
   return data ? data.data : {};
 };
 
@@ -72,11 +97,14 @@ module.exports = {
   searchPerson,
   editPerson,
   addPerson,
+  getNotes,
   addNote,
   addDeal,
   editDeal,
   searchDeal,
+  getActivities,
   duplicateDeal,
   addActivities,
+  searchAllDeals,
   getDealDetails,
 };

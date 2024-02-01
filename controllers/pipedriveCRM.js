@@ -2,12 +2,15 @@ const {
     searchPerson,
     editPerson,
     addPerson,
+    getNotes,
     addNote,
     addDeal,
     editDeal,
     searchDeal,
     duplicateDeal,
+    getActivities,
     addActivities,
+    searchAllDeals,
     getDealDetails,
   } = require("../models/pipedrive/operations");
 
@@ -40,6 +43,8 @@ const {
       let labelColor = '#a0419d';
       let source = '(main)';
       let foundedPerson = [];
+      let foundedDeals = [];
+      
       const referer = req.get("Referer");
       if (referer && referer.includes("/ex1")) {
         label = '23';
@@ -65,28 +70,39 @@ const {
       const personName = Name ? Name : name2 ? name2 : "Undefined name";
       const personPhone = Phone ? Phone : phone2 ? phone2 : "";
       const personEmail = Email ? Email : email2 ? email2 : "";
-      // const title = `Клієнт залишив заявку на${!source.includes('Lm') ? " консультацію" : ''} ${source}`;
       const title = source;
       const data = role ? `<table><caption><h3>Результат опитування&nbsp;</h3></caption><tr><td>Роль:</td><td>${role}</td></tr><tr><td>Кількість продавців:</td><td>${quantity}</td></tr>${volume ? `<tr><td>Обʼєм продажів:</td><td>${volume}</td></tr><tr><td>Функція керівника:</td><td>${func}</td></tr><tr><td>Які проблеми:</td><td><span>${probl.replace(/;/g, "</span></br><span>")}</span></td></tr>` : ""}</table>` : "";
       const content = `<h2>Клієнт залишив повторну заявку на <span style='background-color: #ffffff; color: ${labelColor};'>${source}</span>&nbsp;&nbsp;&nbsp;</h2><div><table><caption><h3>Контактна інформація&nbsp;</h3></caption><tr><td>Імʼя:</td><td>${personName}&nbsp;</td></tr><tr><td>Телефон:</td><td>${personPhone}&nbsp;</td></tr>${personEmail ? `<tr><td>Email:</td><td>${personEmail}&nbsp;&nbsp;</td></tr>` : "&nbsp;&nbsp;"}</table></br>${data}`;
       const content1 = `<h2>Клієнт залишив заявку на <span style='background-color: #ffffff; color: ${labelColor};'>${source}</span>&nbsp;&nbsp;&nbsp;</h2><div><table><caption><h3>Контактна інформація&nbsp;</h3></caption><tr><td>Імʼя:</td><td>${personName}&nbsp;</td></tr><tr><td>Телефон:</td><td>${personPhone}&nbsp;</td></tr>${personEmail ? `<tr><td>Email:</td><td>${personEmail}&nbsp;&nbsp;</td></tr>` : "&nbsp;&nbsp;"}</table></br>${data}`;
      
-      // console.log(referer);
-      // console.log("source:", source);
       // console.log(req.body);
       if (!personPhone && !personEmail) return;
 
-      if (personPhone) foundedPerson = await searchPerson(personPhone);
-      if (personEmail && !foundedPerson.length) foundedPerson = await searchPerson(personEmail);
+      if (personPhone) {
+        const foundedPersonPhone = await searchPerson(personPhone);
+        // console.log("found Person Phone", foundedPersonPhone.length); 
+        if (foundedPersonPhone && foundedPersonPhone.length) foundedPersonPhone.map(({ item: { id, phones, emails }}) => foundedPerson.push({ id, phones, emails }));
+      }
+      if (personEmail) {
+        const foundedPersonEmail = await searchPerson(personEmail);
+        // console.log("found Person Email", foundedPersonEmail.length);    
+        if (foundedPersonEmail && foundedPersonEmail.length) {
+          foundedPersonEmail.map(({ item: { id, phones, emails }}) => {
+          const ids = foundedPerson.map(person => person.id);
+          if (!ids.includes(id)) foundedPerson.push({ id, phones, emails });
+        });
+      }
+      }
+
       if (foundedPerson.length) {
-        personsId = foundedPerson[0].item.id;
-        if (personEmail && !foundedPerson[0].item.emails.includes(personEmail)) {
-          const newEmails = foundedPerson[0].item.emails;
+        personsId = foundedPerson[0].id;
+        if (personEmail && !foundedPerson[0].emails.includes(personEmail)) {
+          // console.log("add new email to person", personsId);
+          const newEmails = foundedPerson[0].emails;
           newEmails.push(personEmail);
           const body = {email: newEmails};
           const editedPerson = await editPerson(personsId, body);
         }
-        // console.log(foundedPerson[0]);
         // console.log("found Person", personsId);    
       } else {
         // console.log("Person not found");
@@ -97,17 +113,49 @@ const {
         if (newPerson) personsId = newPerson.id;
         // console.log("new person id", personsId);
       }
-      const foundedDeals = await searchDeal(personPhone);
-      const foundedActiveDeals = foundedDeals.filter(deal => deal.item.status === 'open');
-      const foundedClosedDeals = foundedDeals.filter(deal => deal.item.status !== 'open');    
-    if (foundedDeals.length) {
+      if (personPhone) {
+      const foundedDealsPhone = await searchDeal({term: personPhone, custom_fields: "phone" });
+      // console.log("found deals by phone", foundedDealsPhone.length);
+      if (foundedDealsPhone && foundedDealsPhone.length) foundedDealsPhone.map(({ item: { id }}) => foundedDeals.push(id));
+      }
+      if (personEmail) {
+        const foundedDealsEmail = await searchDeal({term: personEmail});
+      // console.log("found deals by Email", foundedDealsEmail.length);    
+        if (foundedDealsEmail && foundedDealsEmail.length) {
+          foundedDealsEmail.map(({ item: { id }}) => {
+          if (!foundedDeals.includes(id)) foundedDeals.push(id);
+        });
+      }
+      }
+      if (foundedPerson && foundedPerson.length) {
+      const foundedDealsPerson = await searchAllDeals(foundedPerson.map(person => person.id))
+      // console.log("found deals by persons", foundedDealsPerson.length);
+      if (foundedDealsPerson && foundedDealsPerson.length) {
+        foundedDealsPerson.map(({ id }) => {
+        if (!foundedDeals.includes(id)) foundedDeals.push(id);
+      });
+      }     
+      }
+      const deals = await getDealDetails(foundedDeals);
+      const sortedDeals = deals.sort(function(a, b) {
+        var dateA = new Date(a.add_time);
+        var dateB = new Date(b.add_time);
+        return dateB - dateA;
+      });
+      const foundedActiveDeals = sortedDeals.filter(deal => deal.status === 'open');
+      const foundedClosedDeals = sortedDeals.filter(deal => deal.status !== 'open');
       // console.log("found Deals", foundedDeals.length);
+      // console.log("found active deals", foundedActiveDeals.length);
+      // console.log("found closed deals", foundedClosedDeals.length);
+      
+    if (foundedDeals.length) {
+      // console.log("found unique Deals", foundedDeals.length);
     if (foundedActiveDeals.length) {
         // console.log("found active deals", foundedActiveDeals.length);
-        const deals = await getDealDetails(foundedActiveDeals.map(deal => deal.item.id))
-        const foundedPipelines1 = deals.find(deal => deal.pipeline_id === 1);
-        const foundedPipelines2 = deals.find(deal => deal.pipeline_id === 2);
-        const foundedPipelines3 = deals.find(deal => deal.pipeline_id === 3);
+        // const deals = await getDealDetails(foundedActiveDeals.map(deal => deal.id))
+        const foundedPipelines1 = foundedActiveDeals.find(deal => deal.pipeline_id === 1);
+        const foundedPipelines2 = foundedActiveDeals.find(deal => deal.pipeline_id === 2);
+        const foundedPipelines3 = foundedActiveDeals.find(deal => deal.pipeline_id === 3);
   
         if (foundedPipelines1) {
           const newLabel = foundedPipelines1.label && !foundedPipelines1.label.includes(label) ? foundedPipelines1.label + `, ${label}` : label;
@@ -143,17 +191,33 @@ const {
     } else {  
     if (foundedClosedDeals.length) {
       // console.log("found closed deals", foundedClosedDeals.length);
-      // console.log("id",foundedClosedDeals[0].item.id);
-      const newLabel = foundedClosedDeals[0].item.label && !foundedClosedDeals[0].item.label.includes(label) ? foundedClosedDeals[0].item.label + `, ${label}` : label;
+      const dealId = foundedClosedDeals[0].id;
+      // console.log("id", dealId);
+      const newLabel = foundedClosedDeals[0].label && !foundedClosedDeals[0].label.includes(label) ? foundedClosedDeals[0].label + `, ${label}` : label;
       const body = {title, status: "open", pipeline_id: 1, person_id: personsId, label: newLabel};
       if (utm_source) body["9866a4195e069161f192f563c269b463b4ea0688"] = utm_source;
       if (utm_medium) body["ce4db30445a2acfb1593b51034ff9f303e679926"] = utm_medium;
       if (utm_campaign) body["50966a75b48a959f8fdff6d001e46b78d2778bd2"] = utm_campaign;
       if (utm_term) body["d0503ee8929b0158e144aa74e818c1683152609a"] = utm_term;
       if (utm_content) body["0b9b6f42c6ea10f8cd5e6d54463dbfecf6e7c2bf"] = utm_content;
-
-      const newDeal = await duplicateDeal(foundedClosedDeals[0].item.id);
-      const editedDeal = await editDeal(newDeal.id, body); 
+      const oldActivities = await getActivities(dealId);
+      const oldNotes = await getNotes(foundedClosedDeals[0].id);
+      const newDeal = await duplicateDeal(foundedClosedDeals[0].id);
+      const editedDeal = await editDeal(newDeal.id, body);      
+      if (oldActivities && oldActivities.length) {
+      for (let i = 0; i < oldActivities.length; i++) {
+      const { due_date, type, subject, done} = oldActivities[i];
+      const activitiesBody = {deal_id: newDeal.id, person_id: personsId, due_date, type, subject, done};
+      const newActivities = await addActivities(activitiesBody);
+      }
+      }
+      if (oldNotes && oldNotes.length) {
+      for (let i = 0; i < oldNotes.length; i++) {
+      const { add_time, content} = oldNotes[i];
+      const notesBody = { deal_id: newDeal.id, add_time, content };
+      const newNote = await addNote(notesBody);
+      }
+      }
       const notesBody = {deal_id: newDeal.id, content};
       const newNote = await addNote(notesBody);
     }
