@@ -34,7 +34,7 @@ const {
   }
 
   const newDeal = async (req) => {
-    const { body: {current: { id, person_id, title, person_name }} } = req;
+    // const { body: {current: { id, person_id, title, person_name }} } = req;
       let personsId = '';
       let personName = '';
       let personPhone = '';
@@ -44,7 +44,8 @@ const {
       let source = 'Call';
       let foundedPerson = [];
       let foundedDeals = [];
-      const notesBody = { deal_id: 936, content: `${id}, ${person_id}, ${title}, ${person_name}`};
+      // const notesBody = { deal_id: 936, content: `${id}, ${person_id}, ${title}, ${person_name}`};
+      const notesBody = { deal_id: 936, content: req.body};
       const newNote = await addNote(notesBody);
       return;
       if (/^\d{12}$/.test(title)) {
