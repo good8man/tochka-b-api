@@ -1,12 +1,9 @@
 const {
     searchPerson,
     editPerson,
-    addPerson,
     getNotes,
     addNote,
-    addDeal,
     editDeal,
-    searchDeal,
     duplicateDeal,
     getActivities,
     addActivities,
@@ -45,7 +42,7 @@ const {
       let foundedPerson = [];
       let foundedDeals = [];
       // const notesBody = { deal_id: 936, content: `${id}, ${person_id}, ${title}, ${person_name}`};
-      const notesBody = { deal_id: 936, content: req.body};
+      const notesBody = { deal_id: 936, content: req.body.current.id};
       const newNote = await addNote(notesBody);
       return;
       if (/^\d{12}$/.test(title)) {
