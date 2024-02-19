@@ -41,9 +41,7 @@ const {
       let source = 'Call';
       let foundedPerson = [];
       let foundedDeals = [];
-      const notesBody = { deal_id: 936, content: `${id}, ${person_id}, ${title}, ${person_name}`};
-      const newNote = await addNote(notesBody);
-      return;
+      
       if (/^\d{12}$/.test(title)) {
         // console.log(id, person_id, title);
         const oldActivities = await getActivities(id);
