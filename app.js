@@ -4,6 +4,7 @@ const cors = require("cors");
 require("dotenv").config();
 
 const router = require("./routes/api/webhook");
+const deals = require("./routes/api/deals");
 
 const app = express();
 
@@ -15,6 +16,7 @@ app.use(cors());
 app.use(express.urlencoded({extended: true}));
 
 app.use("/api/webhook", router);
+app.use("/api/newdeal", deals);
 
 app.use((_, res, __) => {
   res.status(404).json({ message: "Not found" });
