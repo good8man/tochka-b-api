@@ -107,15 +107,15 @@ const {
         var dateB = new Date(b.add_time);
         return dateB - dateA;
       });
-      const foundedActiveDeals = sortedDeals.filter(deal => deal.status === 'open');
+      const foundedActiveDeals = sortedDeals.filter(deal => deal.status === 'open' && deal.id !== id);
       const foundedClosedDeals = sortedDeals.filter(deal => deal.status !== 'open');
       // console.log("found Deals", foundedDeals.length);
       // console.log("found active deals", foundedActiveDeals.length);
       // console.log("found closed deals", foundedClosedDeals.length);
       // console.log(foundedDeals);
-      const content = `<h2>Клієнт залишив повторну заявку на <span style='background-color: #ffffff; color: ${labelColor};'>${source}</span>&nbsp;&nbsp;&nbsp;</h2><div><table><caption><h3>Контактна інформація&nbsp;</h3></caption><tr><td>Імʼя:</td><td>${personName}&nbsp;</td></tr><tr><td>Телефон:</td><td>${personPhone}&nbsp;</td></tr>${personEmail ? `<tr><td>Email:</td><td>${personEmail}&nbsp;&nbsp;</td></tr>` : "&nbsp;&nbsp;"}</table></br>`;
+      const content = `<h2>Клієнт залишив ${deals && deals.length ? "повторну заявку " : ""}джерело <span style='background-color: #ffffff; color: ${labelColor};'>${source}</span>&nbsp;&nbsp;&nbsp;</h2><div><table><caption><h3>Контактна інформація&nbsp;</h3></caption><tr><td>Імʼя:</td><td>${personName}&nbsp;</td></tr><tr><td>Телефон:</td><td>${personPhone}&nbsp;</td></tr>${personEmail ? `<tr><td>Email:</td><td>${personEmail}&nbsp;&nbsp;</td></tr>` : "&nbsp;&nbsp;"}</table></br>`;
       if (foundedDeals.length > 1) {
-        if (foundedActiveDeals.length) {
+        if (foundedActiveDeals && foundedActiveDeals.length) {
           // console.log("found active deals", foundedActiveDeals.length);
           const foundedPipelines1 = foundedActiveDeals.find(deal => deal.pipeline_id === 1);
           const foundedPipelines2 = foundedActiveDeals.find(deal => deal.pipeline_id === 2);
@@ -156,15 +156,15 @@ const {
           }
   
         } else {
-          if (foundedClosedDeals.length) {
+          if (foundedClosedDeals && foundedClosedDeals.length) {
             // console.log("found closed deals", foundedClosedDeals.length);
             const dealId = foundedClosedDeals[0].id; 
             const newLabel = foundedClosedDeals[0].label && !foundedClosedDeals[0].label.includes(label) ? foundedClosedDeals[0].label + `, ${label}` : label;
             const body = {title: source, status: "open", pipeline_id: 1, person_id: personsId, label: newLabel}; 
-            const newDeal = await duplicateDeal(foundedClosedDeals[0].id);
+            const newDeal = await duplicateDeal(dealId);
             const editedDeal = await editDeal(newDeal.id, body); 
             await addOldData(id, newDeal.id, personsId);
-            const notesBody = {deal_id: newDeal.id, content};
+            const notesBody = { deal_id: newDeal.id, content };
             const newNote = await addNote(notesBody);
 
           }
